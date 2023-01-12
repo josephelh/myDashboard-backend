@@ -5,9 +5,7 @@ import Product from '../models/productModel.js'
 // @access  Public
 const getProducts = async (req, res) => {  
 
-  const products = await Product.find({})   
-
-  res.json({ products})
+  res.json(await Product.find({}))
 }
 
 // @desc    Fetch single product
@@ -34,7 +32,7 @@ const deleteProduct = async (req, res) => {
     await product.remove()
     res.json({ message: 'Product removed' })
   } else {
-    res.status(404)
+    res.status(404) 
     throw new Error('Product not found')
   }
 }

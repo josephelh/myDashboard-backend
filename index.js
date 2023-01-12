@@ -34,7 +34,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 /* Routes*/
 
 app.use("/users", userRoutes);
-app.use("/client", clientRoutes);
+app.use("/clients", clientRoutes);
 app.use("/products", productRoutes);
 app.use("/order", orderRoutes);
 app.use('/upload', uploadRoutes);

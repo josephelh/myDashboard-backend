@@ -6,7 +6,8 @@ import User from '../models/userModel.js'
 // @route   POST users/login
 // @access  Public
 const authUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body
+  const email = req.body.email
+  const  password  = req.body.password
 
   const user = await User.findOne({ email })
 
@@ -28,7 +29,7 @@ const authUser = asyncHandler(async (req, res) => {
 // @route   POST users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body
+  const { name, email, password, isAdmin } = req.body
 
   const userExists = await User.findOne({ email })
 
@@ -41,6 +42,7 @@ const registerUser = asyncHandler(async (req, res) => {
     name,
     email,
     password,
+    isAdmin,
   })
 
   if (user) {
@@ -122,6 +124,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     if (user) {
       user.name = req.body.name || user.name
       user.email = req.body.email || user.email
+      user.isAdmin = req.body.isAdmin || user.isAdmin
       if (req.body.password) {
         user.password = req.body.password
       }
@@ -151,6 +154,9 @@ const updateUser = asyncHandler(async (req, res) => {
     user.name = req.body.name || user.name
     user.email = req.body.email || user.email
     user.isAdmin = req.body.isAdmin
+    if (req.body.password) {
+      user.password = req.body.password
+    }
 
     const updatedUser = await user.save()
 
