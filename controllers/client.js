@@ -47,7 +47,16 @@ const getClient = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const getClients = asyncHandler(async (req, res) => {
     try {
-        const clients = await Client.find().populate({
+      let keyword = {};
+      if(req.query.keyword) {
+          keyword = {
+              $or: [
+                  { name: { $regex: req.query.keyword, $options: 'i' } },
+                  { address: { $regex: req.query.keyword, $options: 'i' } }
+              ] 
+          }
+      }
+        const clients = await Client.find(keyword).populate({
           path: 'user',
           select: 'name',
         });

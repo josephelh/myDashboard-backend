@@ -3,10 +3,27 @@ import Product from '../models/productModel.js'
 // @desc    Fetch all products
 // @route   GET /api/products
 // @access  Public
-const getProducts = async (req, res) => {  
-
-  res.json(await Product.find({}))
+const getProducts = async (req, res) => {
+  try {
+      let keyword = {};
+      if(req.query.keyword) {
+          keyword = {
+              $or: [
+                  { name: { $regex: req.query.keyword, $options: 'i' } },
+                  { brand: { $regex: req.query.keyword, $options: 'i' } }
+              ] 
+          }
+      }
+      const products = await Product.find(keyword);
+      res.json(products);
+  } catch (error) {
+      console.log(error);
+      res.status(500).json({          
+          message: "Server error"
+      });
+  }
 }
+
 
 // @desc    Fetch single product
 // @route   GET /api/products/:id
