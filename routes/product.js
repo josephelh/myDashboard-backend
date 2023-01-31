@@ -6,11 +6,9 @@ import {
   deleteProduct,
   createProduct,
   updateProduct,
-  getTopProducts,
 } from '../controllers/product.js'
 
 router.route('/').get(getProducts).post(createProduct)
-router.get('/top', getTopProducts)
 router
   .route('/:id')
   .get(getProductById)

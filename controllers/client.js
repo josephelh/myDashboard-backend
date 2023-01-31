@@ -95,7 +95,7 @@ const updateClient = asyncHandler(async (req, res) => {
       client.user = client.user     
   
      client.save()
-     res.json({ message: 'Client updated' })
+     res.json(client)
   
     } else {
       res.status(404)
