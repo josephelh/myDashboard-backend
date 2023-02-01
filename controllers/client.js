@@ -25,18 +25,16 @@ res.status(201).json(createdClient)
 // @route   GET clients/:id
 // @access  Private
 const getClient = asyncHandler(async (req, res) => {
-  const client = await Client.findById(req.params.id) 
+  try {
+    const client = await Client.findById(req.params.id).populate({
+      path: 'user',
+      select: 'name',
+    }); 
 
-  if (client) {
-    const user = await User.findById(client.user)
-    res.json({
-      _id: client._id,
-      name: client.name,
-      address: client.address,
-      phone: client.phone,
-      user:user.name,
-    })
-  } else {
+    res.json(client)
+ 
+    
+  } catch {
     res.status(404)
     throw new Error('Client not found')
   }
