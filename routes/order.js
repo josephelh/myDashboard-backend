@@ -11,6 +11,7 @@ import {
   getProductOrderCountByMonth,
   getMonthlyOrderTotal,
   getOrders,
+  deleteOrder
 } from '../controllers/order.js'
 import { protect, admin } from '../middleware/authMiddleware.js'
 
@@ -20,7 +21,7 @@ router.route('/orderstotal/:id').get(protect, getMonthlyOrderTotal)
 router.route('/user/:id').get(protect,admin, getUserOrders)
 router.route('/myorders').get(protect, getCurrentUserOrders)
 router.route('/client/:id').get(protect, getClientOrders)
-router.route('/:id').get(protect, getOrderById) 
+router.route('/:id').get(protect, getOrderById).delete(protect, deleteOrder)
 router.route('/pay/:id').put(protect, updateOrderToPaid)
 router.route('/:id/deliver').put(protect,updateOrderToDelivered) 
 

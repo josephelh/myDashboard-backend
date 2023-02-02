@@ -304,6 +304,18 @@ const getProductOrderCountByMonth = asyncHandler(async (req, res, next) => {
   }
 });
 
+const deleteOrder = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (order) {
+    await order.remove();
+    res.json({ message: "Order removed" });
+  } else {
+    res.status(404);
+    throw new Error("Order not found");
+  }
+};
+
 export {
   addOrderItems,
   getOrderById,
@@ -315,4 +327,5 @@ export {
   getProductOrderCountByMonth,
   getMonthlyOrderTotal,
   getOrders,
-};
+  deleteOrder, 
+}; 
