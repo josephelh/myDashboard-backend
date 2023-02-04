@@ -99,17 +99,24 @@ const updateOrderToDelivered = asyncHandler(async (req, res) => {
 // @access  Private
 const getUserOrders = asyncHandler(async (req, res, next) => {
   try {
-    const orders = await Order.find({ user: req.params.id }).sort({
-      createdAt: -1,
-    });
+    const { page = 1, pageSize = 15, id} = req.query;
+
+    const orders = await Order.find({user: id}).populate({
+      path: "client",
+      select: "name _id",
+    }).sort({createdAt: -1}).skip(page * pageSize).limit(pageSize);
+
+    const total = await Order.countDocuments({user: id})
+
+
     if (!orders) {
       res.status(404).json({ message: "No orders found for the user" });
     } else {
-      res.json(orders);
+      res.json({orders,total,pages: Math.ceil(total / pageSize)});
     }
   } catch (err) {
     next(err);
-  }
+  } 
 });
 
 // @desc    Get logged in user orders
@@ -117,62 +124,52 @@ const getUserOrders = asyncHandler(async (req, res, next) => {
 // @access  Private
 const getCurrentUserOrders = asyncHandler(async (req, res, next) => {
   try {
-    const orders = await Order.find({ user: req.user._id })
+    const { page = 1, pageSize = 15, id} = req.query;
+    const orders = await Order.find({ user: id })
       .populate({
         path: "client",
         select: "name _id",
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }).sort({createdAt: -1}).skip(page * pageSize).limit(pageSize);
+
+      const total = await Order.countDocuments(id)
+
     if (!orders) {
-      res.status(404).json({ message: "No orders found for the user" });
+      res.status(404).json({ message: "No orders found " });
     } else {
-      res.json(orders);
+      res.json({orders, pages: Math.ceil(total / pageSize) , total});
     }
   } catch (err) {
     next(err);
   }
 });
+
 
 // @desc    Get Client Orders
 // @route   GET /api/orders/cleint/:id
 // @access  Private
 const getClientOrders = asyncHandler(async (req, res, next) => {
   try {
-    const orders = await Order.find({ client: req.params.id })
+    const { page = 1, pageSize = 15, id} = req.query;
+
+    const orders = await Order.find({ client: id })
       .populate("user", "name _id")
-      .populate({
-        path: "client",
-        select: "name _id",
-      })
-      .sort({ createdAt: -1 });
+      .sort({createdAt: -1}).skip(page * pageSize).limit(pageSize)  
+      
+
+    const total = await Order.countDocuments({client:id});
+
     if (!orders) {
       res.status(404).json({ message: "No orders found for the client" });
     } else {
-      res.json(orders);
+      res.json({orders, total, pages: Math.ceil(total / pageSize)});
     }
   } catch (err) {
     next(err);
   }
 });
 
-// @desc    Get all orders
-// @route   GET /api/orders
-// @access  Private/Admin
-// const getOrders = asyncHandler(async (req, res, next) => {
-//   try {
-//     const orders = await Order.find({})
-//       .populate("user", "id name")
-//       .populate("client", "id name")
-//       .sort({ createdAt: -1 });
-//     if (!orders) {
-//       res.status(400).json({ message: "No orders found" });
-//     } else {
-//       res.json(orders);
-//     }
-//   } catch (err) {
-//     next(err);
-//   }
-// });
+
 
 const getOrders = async (req, res) => {
   try {
@@ -242,6 +239,38 @@ const getMonthlyOrderTotal = async (req, res) => {
     ];
     const orderTotals = await Order.aggregate(aggregatePipeline);
     res.json(orderTotals);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const getYearlyOrdersTotal = async (req, res) => {
+  try {
+    const year = req.params.id;
+    const aggregatePipeline = [
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(`${year}-01-01T00:00:00.000`),
+            $lt: new Date(`${year}-12-31T23:59:59.999`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: "$totalPrice",
+          },
+        },
+      },
+    ];
+    const orderTotal = await Order.aggregate(aggregatePipeline);
+    if (orderTotal.length === 0) {
+      res.json({total:0});
+    } else {
+      res.json({ total: orderTotal[0].total });
+    }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -328,4 +357,5 @@ export {
   getMonthlyOrderTotal,
   getOrders,
   deleteOrder, 
+  getYearlyOrdersTotal
 }; 
