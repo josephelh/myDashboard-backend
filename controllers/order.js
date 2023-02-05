@@ -297,9 +297,9 @@ const getProductOrderCountByMonth = asyncHandler(async (req, res, next) => {
         $group: {
           _id: {
             product: "$orderItems.product",
-            month: { $month: "$createdAt" },
           },
           name: { $first: "$orderItems.name" },
+          image: { $first: "$orderItems.image" },
           totalPurshases: { $sum: "$orderItems.qty" },
         },
       },
@@ -315,9 +315,18 @@ const getProductOrderCountByMonth = asyncHandler(async (req, res, next) => {
         $unwind: "$product_detail",
       },
       {
+        $group: {
+          _id: {
+            product: "$_id.product",
+            name: "$name",
+            image: "$image",
+          },
+          totalPurshases: { $sum: "$totalPurshases" },
+        },
+      },
+      {
         $sort: {
-          "_id.month": -1,
-          total: -1,
+          totalPurshases: -1,
         },
       },
     ];
@@ -325,9 +334,9 @@ const getProductOrderCountByMonth = asyncHandler(async (req, res, next) => {
     const productOrderCount = await Order.aggregate(aggregatePipeline);
     if (productOrderCount.length === 0) {
       res.json([]);
-  } else {
+    } else {
       res.json(productOrderCount);
-  }
+    }
   } catch (err) {
     next(err);
   }
